@@ -13,4 +13,33 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "JetpackComposeEditor"
+def projectName = "testProject" //作業するプロジェクトのルートディレクトリ名
+def featureName = "auth" //作業中のドメイン名(全ドメインのモジュールがまとまっている場合は不要)
+def childFeatureName = "login" // 作業中のドメインの子モジュール名(存在しなければ不要)
+def hasChildModule = false // 子モジュールの存在可否
+def hasChildCoreModule = false // 子モジュール専用のCoreモジュールの存在可否
 include ':app'
+include ':entity:feature'
+project(":entity:feature").projectDir = file("../$projectName/domain/entity/$featureName")
+if (hasChildModule) {
+    include ':entity:feature:child'
+    project(":entity:feature:child").projectDir = file("../$projectName/domain/entity/$featureName/$childFeatureName")
+}
+if (hasChildCoreModule) {
+    include ':entity:feature:core'
+    project(":entity:feature:core").projectDir = file("../$projectName/domain/entity/$featureName/core")
+}
+include ':entity:core'
+project(":entity:core").projectDir = file("../$projectName/domain/entity/core")
+include ':layout:feature'
+project(":layout:feature").projectDir = file("../$projectName/presentation/layout/$featureName")
+if (hasChildModule) {
+    include ':layout:feature:child'
+    project(":layout:feature:child").projectDir = file("../$projectName/presentation/layout/$featureName/$childFeatureName")
+}
+if (hasChildCoreModule) {
+    include ':layout:feature:core'
+    project(":layout:feature:core").projectDir = file("../$projectName/presentation/layout/$featureName/core")
+}
+include ':layout:core'
+project(":layout:core").projectDir = file("../$projectName/presentation/layout/core")

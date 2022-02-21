@@ -1,6 +1,7 @@
 buildscript {
     ext {
-        compose_version = '1.0.1'
+        accompanist_version = '0.20.3'
+        compose_version = '1.1.0'
     }
 }// Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
@@ -11,4 +12,113 @@ plugins {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
+}
+
+subprojects {
+    afterEvaluate { subProject ->
+        if (subProject.hasProperty('android')) {
+            dependencies {
+                // settings.gradleで定義したモジュールの構造を組むセクション
+                // モジュール名は代数的に扱うこと
+                switch (subProject.getPath()) {
+                    case ":app":
+                        implementation project(":entity:feature")
+                        implementation project(":layout:feature")
+                        break
+                    case ":layout:feature":
+                        implementation project(":entity:feature")
+                        implementation project(":layout:core")
+//                        implementation project(":layout:feature:child")
+//                        implementation project(":layout:feature:core")
+                        break
+                    case ":layout:feature:child":
+                        implementation project(":entity:feature:child")
+                        implementation project(":layout:core")
+                        implementation project(":layout:feature:core")
+                        break
+                    case ":layout:feature:core":
+                        implementation project(":entity:feature:core")
+                        implementation project(":layout:core")
+                        break
+                    case ":entity:feature":
+                        implementation project(":entity:core")
+//                        implementation project(":entity:feature:child")
+//                        implementation project(":entity:feature:core")
+                        break
+                    case ":entity:feature:child":
+                        implementation project(":entity:core")
+                        implementation project(":entity:feature:core")
+                        break
+                    case ":entity:feature:core":
+                        implementation project(":entity:core")
+                        break
+                    case ":layout:core":
+                        implementation project(":entity:core")
+                        implementation project("::extension:compose")
+                        break
+                    case ":entity:core":
+                        break
+                }
+
+                // 全モジュールにまとめてimplするライブラリ
+                implementation 'androidx.core:core-ktx:1.7.0'
+                implementation "androidx.compose.ui:ui:$compose_version"
+                implementation "androidx.compose.material:material:$compose_version"
+                implementation "androidx.compose.ui:ui-tooling-preview:$compose_version"
+                implementation "androidx.compose.material:material-icons-extended:$compose_version"
+                implementation "com.google.accompanist:accompanist-insets:$accompanist_version"
+                implementation "com.google.accompanist:accompanist-insets-ui:$accompanist_version"
+                implementation "com.google.accompanist:accompanist-pager:$accompanist_version"
+                implementation "com.google.accompanist:accompanist-pager-indicators:$accompanist_version"
+                implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.4.1'
+                implementation 'androidx.activity:activity-compose:1.4.0'
+                testImplementation 'junit:junit:4.13.2'
+                androidTestImplementation 'androidx.test.ext:junit:1.1.3'
+                androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
+                androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_version"
+                debugImplementation "androidx.compose.ui:ui-tooling:$compose_version"
+            }
+
+            // 全モジュールの依存以外の設定
+            android {
+                compileSdk 31
+                defaultConfig {
+                    minSdk 23
+                    targetSdk 31
+                    versionCode 1
+                    versionName "1.0"
+
+                    testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+                    vectorDrawables {
+                        useSupportLibrary true
+                    }
+                }
+
+                buildTypes {
+                    release {
+                        minifyEnabled false
+                        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+                    }
+                }
+                compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_1_8
+                    targetCompatibility JavaVersion.VERSION_1_8
+                }
+                kotlinOptions {
+                    jvmTarget = '1.8'
+                }
+                buildFeatures {
+                    compose true
+                }
+                composeOptions {
+                    kotlinCompilerExtensionVersion compose_version
+                }
+                packagingOptions {
+                    resources {
+                        excludes += '/META-INF/{AL2.0,LGPL2.1}'
+                    }
+                }
+            }
+        }
+    }
 }
